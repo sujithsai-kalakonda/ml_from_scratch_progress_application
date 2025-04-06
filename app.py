@@ -241,9 +241,25 @@ def complete_algorithm(username, algo_name, implementation_file=None):
 
 # UI Functions
 def login_page():
+    """Render the login/registration page."""
     st.title("ML Algorithm Tracker")
+
+    # Add a nice subtitle
     st.markdown(
-        "Track your progress implementing machine learning algorithms from scratch"
+        """
+    <p style="font-size: 1.2em; color: #4361ee; margin-bottom: 30px;">
+        Track your progress implementing machine learning algorithms from scratch
+    </p>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    # Create a card-like container
+    st.markdown(
+        """
+    <div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    """,
+        unsafe_allow_html=True,
     )
 
     tab1, tab2 = st.tabs(["Login", "Register"])
@@ -279,10 +295,16 @@ def login_page():
                 else:
                     st.error("Username already exists")
 
+    st.markdown("</div>", unsafe_allow_html=True)
+
 
 def dashboard(username):
+    """Render the dashboard page."""
+    # Load user data
     users = load_users()
-    user_data = users.get(username, {})
+    user_data = users.get(username, {"name": username})
+
+    # Load user progress
     progress = load_user_progress(username)
 
     st.title(f"Welcome, {user_data.get('name', username)}!")
@@ -297,7 +319,7 @@ def dashboard(username):
     started = sum(1 for algo in progress["algorithms"].values() if algo["started"])
     completed = sum(1 for algo in progress["algorithms"].values() if algo["completed"])
 
-    # Display progress summary
+    # Display progress summary with colored metrics
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Algorithms", total_algos)
     col2.metric("In Progress", started - completed)
@@ -306,12 +328,22 @@ def dashboard(username):
     # Progress bar
     st.progress(completed / total_algos if total_algos > 0 else 0)
 
-    # Algorithm categories
-    categories = sorted(
-        set(algo["category"] for algo in progress["algorithms"].values())
+    # Define category order
+    category_order = ["Beginner", "Intermediate", "Advanced"]
+
+    # Get all categories from algorithms
+    all_categories = set(algo["category"] for algo in progress["algorithms"].values())
+
+    # Sort categories according to our order, with any additional categories at the end
+    sorted_categories = sorted(
+        all_categories,
+        key=lambda x: (
+            category_order.index(x) if x in category_order else len(category_order)
+        ),
     )
 
-    for category in categories:
+    # Display algorithms by category
+    for category in sorted_categories:
         st.header(category)
 
         # Filter algorithms by category
@@ -327,9 +359,9 @@ def dashboard(username):
         for i, (algo_name, algo_data) in enumerate(category_algos.items()):
             col = cols[i % 3]
 
-            # Determine card color based on status
+            # Determine card class based on status
             if algo_data["completed"]:
-                card_color = "green"
+                card_class = "completed"
                 status_text = "Completed"
             elif algo_data["started"]:
                 # Check if delayed
@@ -341,27 +373,27 @@ def dashboard(username):
                         datetime.datetime.now() - start_date
                     ).total_seconds() / 3600
                     if elapsed_hours > algo_data["estimated_hours"]:
-                        card_color = "red"  # Delayed
+                        card_class = "delayed"  # Delayed
                         status_text = "Delayed"
                     else:
-                        card_color = "blue"  # In progress, not delayed
+                        card_class = "in-progress"  # In progress, not delayed
                         status_text = "In Progress"
                 else:
-                    card_color = "blue"
+                    card_class = "in-progress"
                     status_text = "In Progress"
             else:
-                card_color = "gray"
+                card_class = "not-started"
                 status_text = "Not Started"
 
-            # Create card
+            # Create card with new styling
             with col:
                 with st.container():
                     st.markdown(
                         f"""
-                    <div style="padding: 10px; border-radius: 5px; border: 1px solid {card_color}; margin-bottom: 10px;">
-                        <h3 style="color: {card_color};">{algo_name}</h3>
-                        <p>Status: {status_text}</p>
-                        <p>Est. Time: {algo_data["estimated_hours"]} hours</p>
+                    <div class="algorithm-card {card_class}">
+                        <h3>{algo_name}</h3>
+                        <p><strong>Status:</strong> {status_text}</p>
+                        <p><strong>Est. Time:</strong> {algo_data["estimated_hours"]} hours</p>
                     </div>
                     """,
                         unsafe_allow_html=True,
@@ -373,8 +405,19 @@ def dashboard(username):
 
 
 def algorithm_detail(username, algo_name):
+    """Render the algorithm detail page."""
+    # Load user progress
     progress = load_user_progress(username)
-    algo_data = progress["algorithms"].get(algo_name, {})
+
+    # Get algorithm data
+    if algo_name not in progress["algorithms"]:
+        st.error(f"Algorithm '{algo_name}' not found")
+        if st.button("Back to Dashboard"):
+            st.session_state.selected_algorithm = None
+            st.rerun()
+        return
+
+    algo_data = progress["algorithms"][algo_name]
     algo_info = ALGORITHMS.get(algo_name, {})
 
     st.title(algo_name)
@@ -383,15 +426,26 @@ def algorithm_detail(username, algo_name):
         st.session_state.selected_algorithm = None
         st.rerun()
 
+    # Create a card-like container for algorithm details
+    st.markdown(
+        """
+    <div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    """,
+        unsafe_allow_html=True,
+    )
+
     st.markdown(f"**Category:** {algo_data.get('category', 'Unknown')}")
     st.markdown(
         f"**Description:** {algo_info.get('description', 'No description available')}"
     )
 
-    # Status information
+    # Status information with appropriate styling
     status = "Not Started"
+    status_color = "var(--gray)"
+
     if algo_data.get("completed", False):
         status = "Completed"
+        status_color = "var(--success)"
     elif algo_data.get("started", False):
         if algo_data.get("start_date"):
             start_date = datetime.datetime.fromisoformat(algo_data["start_date"])
@@ -400,14 +454,25 @@ def algorithm_detail(username, algo_name):
             ).total_seconds() / 3600
             if elapsed_hours > algo_data.get("estimated_hours", 0):
                 status = f"Delayed (Exceeded by {elapsed_hours - algo_data['estimated_hours']:.1f} hours)"
+                status_color = "var(--danger)"
             else:
                 status = "In Progress"
+                status_color = "var(--primary)"
         else:
             status = "In Progress"
+            status_color = "var(--primary)"
 
-    st.markdown(f"**Status:** {status}")
+    st.markdown(
+        f"""
+    <p><strong>Status:</strong> <span style="color: {status_color};">{status}</span></p>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
     # Time estimation
+    st.markdown("<br>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         estimated_hours = st.number_input(
@@ -436,6 +501,7 @@ def algorithm_detail(username, algo_name):
             st.metric("Hours Spent", f"{algo_data['actual_hours']:.1f}")
 
     # Action buttons
+    st.markdown("<br>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         if not algo_data.get("started", False):
@@ -452,7 +518,15 @@ def algorithm_detail(username, algo_name):
 
     # Implementation upload
     if st.session_state.get("show_upload", False):
-        st.subheader("Upload Implementation")
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            """
+        <div style="background-color: #e6f3ff; padding: 15px; border-radius: 8px; margin-top: 20px;">
+        <h3>Upload Implementation</h3>
+        """,
+            unsafe_allow_html=True,
+        )
+
         uploaded_file = st.file_uploader(
             "Upload your .py implementation", type=["py"], key="implementation_file"
         )
@@ -464,8 +538,11 @@ def algorithm_detail(username, algo_name):
                 st.success(f"Completed {algo_name}!")
                 st.rerun()
 
+        st.markdown("</div>", unsafe_allow_html=True)
+
     # Display implementation if available
     if algo_data.get("implementation_file"):
+        st.markdown("<br>", unsafe_allow_html=True)
         st.subheader("Your Implementation")
         file_path = os.path.join(
             UPLOADS_DIR, username, algo_data["implementation_file"]
@@ -481,13 +558,27 @@ def algorithm_detail(username, algo_name):
 
     # Resources
     if algo_info.get("resources"):
+        st.markdown("<br>", unsafe_allow_html=True)
         st.subheader("Resources")
+
+        st.markdown(
+            """
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+        """,
+            unsafe_allow_html=True,
+        )
+
         for resource in algo_info["resources"]:
-            st.markdown(f"[{resource['title']}]({resource['url']})")
+            st.markdown(f"• [{resource['title']}]({resource['url']})")
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # Notes
+    st.markdown("<br>", unsafe_allow_html=True)
     st.subheader("Notes")
-    notes = st.text_area("Your notes", value=algo_data.get("notes", ""), key="notes")
+    notes = st.text_area(
+        "Your notes", value=algo_data.get("notes", ""), key="notes", height=150
+    )
     if notes != algo_data.get("notes", ""):
         algo_data["notes"] = notes
         save_user_progress(username, progress)
@@ -514,17 +605,150 @@ def main():
         initial_sidebar_state="collapsed",
     )
 
-    # Custom CSS
+    # Custom CSS with eye-pleasing colors
     st.markdown(
         """
     <style>
-    .stApp {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    div[data-testid="stMetricValue"] {
-        font-size: 20px;
-    }
+        /* Main color palette */
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #90e0ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #adb5bd;
+        }
+        
+        /* Overall app styling */
+        .stApp {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+        }
+        
+        /* Header styling */
+        h1 {
+            color: var(--primary);
+            font-weight: 700;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-light);
+        }
+        
+        h2 {
+            color: var(--secondary);
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        
+        h3 {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        /* Button styling */
+        .stButton button {
+            background-color: var(--primary);
+            color: white;
+            border-radius: 5px;
+            border: none;
+            padding: 5px 15px;
+            font-weight: 500;
+        }
+        
+        .stButton button:hover {
+            background-color: var(--primary-light);
+        }
+        
+        /* Metric styling */
+        div[data-testid="stMetricValue"] {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        div[data-testid="stMetricLabel"] {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        /* Progress bar styling */
+        div[data-testid="stProgressBar"] {
+            background-color: var(--light);
+        }
+        
+        div[data-testid="stProgressBar"] > div {
+            background-color: var(--primary);
+        }
+        
+        /* Card styling for algorithms */
+        .algorithm-card {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .algorithm-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .not-started {
+            background-color: #f8f9fa;
+            border-left: 5px solid var(--gray);
+        }
+        
+        .in-progress {
+            background-color: #e6f3ff;
+            border-left: 5px solid var(--primary);
+        }
+        
+        .delayed {
+            background-color: #fff0f3;
+            border-left: 5px solid var(--danger);
+        }
+        
+        .completed {
+            background-color: #e6fff0;
+            border-left: 5px solid #4cc9f0;
+        }
+        
+        /* Form styling */
+        input, textarea, .stTextInput input, .stTextArea textarea {
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            padding: 8px 12px;
+        }
+        
+        input:focus, textarea:focus, .stTextInput input:focus, .stTextArea textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+        
+        /* Tab styling */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 2px;
+        }
+        
+        .stTabs [data-baseweb="tab"] {
+            height: 50px;
+            white-space: pre-wrap;
+            background-color: #f8f9fa;
+            border-radius: 5px 5px 0 0;
+            gap: 1px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        
+        .stTabs [aria-selected="true"] {
+            background-color: white;
+            border-bottom: 2px solid var(--primary);
+        }
     </style>
     """,
         unsafe_allow_html=True,
