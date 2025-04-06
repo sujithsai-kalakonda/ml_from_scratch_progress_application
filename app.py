@@ -749,6 +749,57 @@ def main():
             background-color: white;
             border-bottom: 2px solid var(--primary);
         }
+
+        /* Card styling for algorithms */
+        .algorithm-card {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .algorithm-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .not-started {
+            background-color: #f8f9fa;  /* Light gray for not started */
+            border-left: 5px solid var(--gray);
+        }
+
+        .in-progress {
+            background-color: #fff9c4;  /* Light yellow for in progress */
+            border-left: 5px solid #ffd54f;  /* Amber color */
+        }
+
+        .delayed {
+            background-color: #ffebee;  /* Light red for delayed */
+            border-left: 5px solid var(--danger);
+        }
+
+        .completed {
+            background-color: #e8f5e9;  /* Light green for completed */
+            border-left: 5px solid #4caf50;  /* Green color */
+        }
+
+        .not-started h3, .not-started p {
+            color: #424242;  /* Dark gray text for light background */
+        }
+
+        .in-progress h3, .in-progress p {
+            color: #5d4037;  /* Brown text for yellow background */
+        }
+
+        .delayed h3, .delayed p {
+            color: #b71c1c;  /* Dark red text for light red background */
+        }
+
+        .completed h3, .completed p {
+            color: #1b5e20;  /* Dark green text for light green background */
+        }
+
     </style>
     """,
         unsafe_allow_html=True,
