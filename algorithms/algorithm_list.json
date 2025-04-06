@@ -1,3 +1,90 @@
 {
-    "algorithms": []
+    "Linear Regression": {
+        "category": "Beginner",
+        "description": "Simple linear model for predicting continuous values. Implement gradient descent from scratch.",
+        "default_estimated_hours": 10,
+        "resources": [
+            {
+                "title": "Linear Regression Explained Simply",
+                "url": "https://www.youtube.com/watch?v=zPG4NjIkCjc"
+            }
+        ]
+    },
+    "Logistic Regression": {
+        "category": "Beginner",
+        "description": "Binary classification algorithm using sigmoid function. Good first classification algorithm.",
+        "default_estimated_hours": 12,
+        "resources": [
+            {
+                "title": "Logistic Regression Tutorial",
+                "url": "https://www.youtube.com/watch?v=yIYKR4sgzI8"
+            }
+        ]
+    },
+    "K-Nearest Neighbors": {
+        "category": "Beginner",
+        "description": "Classification by finding nearest neighbors. Simple but powerful algorithm.",
+        "default_estimated_hours": 8,
+        "resources": [
+            {
+                "title": "KNN Algorithm Explained",
+                "url": "https://www.youtube.com/watch?v=HVXime0nQeI"
+            }
+        ]
+    },
+    "Decision Trees": {
+        "category": "Beginner",
+        "description": "Tree-based model for classification and regression. Focus on information gain and splitting criteria.",
+        "default_estimated_hours": 15,
+        "resources": [
+            {
+                "title": "Decision Trees for Beginners",
+                "url": "https://www.youtube.com/watch?v=7VeUPuFGJHk"
+            }
+        ]
+    },
+    "K-Means Clustering": {
+        "category": "Intermediate",
+        "description": "Unsupervised learning algorithm for grouping similar data points.",
+        "default_estimated_hours": 14,
+        "resources": [
+            {
+                "title": "K-Means Clustering Explained",
+                "url": "https://www.youtube.com/watch?v=4b5d3muPQmA"
+            }
+        ]
+    },
+    "Random Forest": {
+        "category": "Intermediate",
+        "description": "Ensemble of decision trees. Learn how multiple models can work together.",
+        "default_estimated_hours": 18,
+        "resources": [
+            {
+                "title": "Random Forest Algorithm",
+                "url": "https://www.youtube.com/watch?v=J4Wdy0Wc_xQ"
+            }
+        ]
+    },
+    "Support Vector Machine": {
+        "category": "Advanced",
+        "description": "Powerful classification algorithm that finds optimal boundaries between classes.",
+        "default_estimated_hours": 25,
+        "resources": [
+            {
+                "title": "SVM Explained Simply",
+                "url": "https://www.youtube.com/watch?v=efR1C6CvhmE"
+            }
+        ]
+    },
+    "Neural Network Basics": {
+        "category": "Advanced",
+        "description": "Simple feedforward neural network implementation. Foundation for deep learning.",
+        "default_estimated_hours": 30,
+        "resources": [
+            {
+                "title": "Neural Networks from Scratch",
+                "url": "https://www.youtube.com/watch?v=Wo5dMEP_BbI"
+            }
+        ]
+    }
 }
